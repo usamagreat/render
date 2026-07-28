@@ -31,6 +31,7 @@
     const statusText   = document.getElementById('status-text');
     const childDot     = document.getElementById('child-dot');
     const childText    = document.getElementById('child-status-text');
+    const activityFeed = document.getElementById('activity-feed');
     const touchFeed    = document.getElementById('touch-feed');
     const pageTitle    = document.getElementById('page-title');
     const lastUpdate   = document.getElementById('last-update');
