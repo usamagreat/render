@@ -2,8 +2,7 @@ const { Database } = require('node-sqlite3-wasm');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'parent_control.db');
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+const DB_PATH = ':memory:';
 
 const db = new Database(DB_PATH);
 
