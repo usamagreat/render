@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: parent-control-server
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DB_PATH
+        value: /opt/render/project/src/data/parent_control.db
